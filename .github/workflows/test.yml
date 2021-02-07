@@ -29,15 +29,13 @@ jobs:
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-:  
+          restore-keys: ${{ runner.os }}-yarn-
       - run: yarn --frozen-lockfile
       - uses: actions/cache@v1
         with:
           path: .eslintcache
           key: lint-${{ env.GITHUB_SHA }}
-          restore-keys: |
-            lint-:
+          restore-keys: lint-
       - run: yarn lint
   basic:
     runs-on: ubuntu-latest
@@ -53,8 +51,7 @@ jobs:
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-:  
+          restore-keys: ${{ runner.os }}-yarn-
       - run: yarn --frozen-lockfile
       - run: yarn link --frozen-lockfile || true
       - run: yarn link webpack --frozen-lockfile
@@ -65,26 +62,20 @@ jobs:
           functionalities: gcov
   unit:
     needs: [lint, basic]
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        node-version: [10.x, 12.x, 14.x, 15.x]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 14.x
       - id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
       - uses: actions/cache@v1
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-:  
+          restore-keys: ${{ runner.os }}-yarn-
       - run: yarn --frozen-lockfile
       - run: yarn link --frozen-lockfile || true
       - run: yarn link webpack --frozen-lockfile
@@ -92,8 +83,7 @@ jobs:
         with:
           path: .jest-cache
           key: jest-unit-${{ env.GITHUB_SHA }}
-          restore-keys: |
-            jest-unit-:
+          restore-keys: jest-unit-
       - run: yarn cover:unit --ci --cacheDirectory .jest-cache --reporters=default --reporters=jest-junit
       - uses: codecov/codecov-action@v1
         with:
@@ -119,8 +109,7 @@ jobs:
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-:  
+          restore-keys: ${{ runner.os }}-yarn-
       - run: yarn --frozen-lockfile
       - run: yarn link --frozen-lockfile || true
       - run: yarn link webpack --frozen-lockfile
@@ -128,8 +117,7 @@ jobs:
         with:
           path: .jest-cache
           key: jest-integration-${{ env.GITHUB_SHA }}
-          restore-keys: |
-            jest-integration-:
+          restore-keys: jest-integration-
       - run: yarn cover:integration --ci --cacheDirectory .jest-cache --reporters=default --reporters=jest-junit
       - if: ${{ matrix.os != 'windows-latest' }}
         uses: codecov/codecov-action@v1
