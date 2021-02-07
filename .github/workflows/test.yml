@@ -44,7 +44,7 @@ jobs:
       - uses: codecov/codecov-action@v1
         with:
           flags: basic
-          functionalities: [gcov]
+          functionalities: gcov
   unit:
     needs: [lint, basic]
     strategy:
