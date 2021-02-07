@@ -1,6 +1,7 @@
 name: Test
 
 # cspell:word Ignus
+# cspell:word eslintcache
 
 on:
   push:
@@ -57,7 +58,7 @@ jobs:
       - run: yarn --frozen-lockfile
       - run: yarn link --frozen-lockfile || true
       - run: yarn link webpack --frozen-lockfile
-      - run: yarn test:basic --ci
+      - run: yarn test:basic --ci --reporters=default --reporters=jest-junit
       - uses: codecov/codecov-action@v1
         with:
           flags: basic
@@ -93,7 +94,7 @@ jobs:
           key: jest-unit-${{ env.GITHUB_SHA }}
           restore-keys: |
             jest-unit-:
-      - run: yarn cover:unit --ci --cacheDirectory .jest-cache
+      - run: yarn cover:unit --ci --cacheDirectory .jest-cache --reporters=default --reporters=jest-junit
       - uses: codecov/codecov-action@v1
         with:
           flags: unit
@@ -129,7 +130,7 @@ jobs:
           key: jest-integration-${{ env.GITHUB_SHA }}
           restore-keys: |
             jest-integration-:
-      - run: yarn cover:integration --ci --cacheDirectory .jest-cache
+      - run: yarn cover:integration --ci --cacheDirectory .jest-cache --reporters=default --reporters=jest-junit
       - if: ${{ matrix.os != 'windows-latest' }}
         uses: codecov/codecov-action@v1
         with:
