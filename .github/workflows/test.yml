@@ -31,6 +31,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-:  
       - run: yarn --frozen-lockfile
+      - uses: actions/cache@v1
+        with:
+          path: .eslintcache
+          key: lint-${{ env.GITHUB_SHA }}
+          restore-keys: |
+            lint-:
       - run: yarn lint
   basic:
     runs-on: ubuntu-latest
@@ -51,12 +57,7 @@ jobs:
       - run: yarn --frozen-lockfile
       - run: yarn link --frozen-lockfile || true
       - run: yarn link webpack --frozen-lockfile
-      - run: yarn test:basic --ci --reporters=default --reporters=jest-junit
-      - uses: IgnusG/jest-report-action@v2.3.3
-        if: always()
-        with:
-          run-name: basic
-          access-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: yarn test:basic --ci
       - uses: codecov/codecov-action@v1
         with:
           flags: basic
@@ -86,12 +87,13 @@ jobs:
       - run: yarn --frozen-lockfile
       - run: yarn link --frozen-lockfile || true
       - run: yarn link webpack --frozen-lockfile
-      - run: yarn cover:unit --ci --reporters=default --reporters=jest-junit
-      - uses: IgnusG/jest-report-action@v2.3.3
-        if: always()
+      - uses: actions/cache@v1
         with:
-          run-name: unit
-          access-token: ${{ secrets.GITHUB_TOKEN }}
+          path: .jest-cache
+          key: jest-unit-${{ env.GITHUB_SHA }}
+          restore-keys: |
+            jest-unit-:
+      - run: yarn cover:unit --ci --cacheDirectory .jest-cache
       - uses: codecov/codecov-action@v1
         with:
           flags: unit
@@ -121,12 +123,13 @@ jobs:
       - run: yarn --frozen-lockfile
       - run: yarn link --frozen-lockfile || true
       - run: yarn link webpack --frozen-lockfile
-      - run: yarn cover:integration --ci --reporters=default --reporters=jest-junit
-      - uses: IgnusG/jest-report-action@v2.3.3
-        if: always()
+      - uses: actions/cache@v1
         with:
-          run-name: integration
-          access-token: ${{ secrets.GITHUB_TOKEN }}
+          path: .jest-cache
+          key: jest-integration-${{ env.GITHUB_SHA }}
+          restore-keys: |
+            jest-integration-:
+      - run: yarn cover:integration --ci --cacheDirectory .jest-cache
       - if: ${{ matrix.os != 'windows-latest' }}
         uses: codecov/codecov-action@v1
         with:
