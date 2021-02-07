@@ -1,0 +1,102 @@
+name: Test
+
+# cspell:word Ignus
+
+on:
+  push:
+    branches:
+      - master
+      - dev-1
+      - ci/actions
+  pull_request:
+    branches:
+      - master
+      - dev-1
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - run: yarn --frozen-lockfile
+      - run: yarn lint
+  basic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - run: yarn --frozen-lockfile
+      - run: yarn link --frozen-lockfile || true
+      - run: yarn link webpack --frozen-lockfile
+      - run: yarn test:basic --ci --reporters=default --reporters=jest-junit
+      - uses: IgnusG/jest-report-action@v{ current version }
+        if: always()
+        with:
+          run-name: basic
+          access-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: codecov/codecov-action@v1
+        with:
+          flags: basic
+          functionalities: [gcov]
+  unit:
+    needs: [lint, basic]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [10.x, 12.x, 14.x, 15.x]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn --frozen-lockfile
+      - run: yarn link --frozen-lockfile || true
+      - run: yarn link webpack --frozen-lockfile
+      - run: yarn cover:unit --ci --reporters=default --reporters=jest-junit
+      - uses: IgnusG/jest-report-action@v2.3.3
+        if: always()
+        with:
+          run-name: unit
+          access-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: codecov/codecov-action@v1
+        with:
+          flags: unit
+          functionalities: gcov
+  integration:
+    needs: [lint, basic]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [10.x, 12.x, 14.x, 15.x]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn --frozen-lockfile
+      - run: yarn link --frozen-lockfile || true
+      - run: yarn link webpack --frozen-lockfile
+      - run: yarn cover:integration --ci --reporters=default --reporters=jest-junit
+      - uses: IgnusG/jest-report-action@v2.3.3
+        if: always()
+        with:
+          run-name: integration
+          access-token: ${{ secrets.GITHUB_TOKEN }}
+      - if: ${{ matrix.os != 'windows-latest' }}
+        uses: codecov/codecov-action@v1
+        with:
+          flags: integration
+          functionalities: gcov
